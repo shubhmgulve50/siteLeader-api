@@ -1,0 +1,46 @@
+service: site-leader-api
+
+frameworkVersion: '~4'
+
+provider:
+  name: aws
+  runtime: nodejs22.x
+  region: ${env:AWS_REGION, 'ap-south-1'}
+  stage: ${opt:stage, 'dev'}
+  timeout: 30
+  memorySize: 512
+  environment:
+    NODE_ENV: ${env:NODE_ENV}
+    PORT: ${env:PORT}
+    MONGODB_URI: ${env:MONGODB_URI}
+    JWT_SECRET: ${env:JWT_SECRET}
+    JWT_REFRESH_SECRET: ${env:JWT_REFRESH_SECRET}
+    JWT_EXPIRES: ${env:JWT_EXPIRES}
+    COOKIE_EXPIRES: ${env:COOKIE_EXPIRES}
+    COOKIE_DOMAIN: ${env:COOKIE_DOMAIN}
+    CORS_ORIGINS: ${env:CORS_ORIGINS}
+
+functions:
+  app:
+    handler: lambda.handler
+    events:
+      - httpApi:
+          path: /
+          method: ANY
+      - httpApi:
+          path: /{proxy+}
+          method: ANY
+    warmup:
+      default:
+        enabled: true
+
+custom:
+  warmup:
+    default:
+      enabled: true
+      prewarm: true
+      events:
+        - schedule: rate(5 minutes)
+
+plugins:
+  - serverless-plugin-warmup
