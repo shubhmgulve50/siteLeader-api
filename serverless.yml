@@ -9,6 +9,9 @@ provider:
   stage: ${opt:stage, 'dev'}
   timeout: 30
   memorySize: 512
+  deploymentBucket:
+    name: site-leader-api-deployments-${opt:stage, 'dev'}
+    serverSideEncryption: AES256
   environment:
     NODE_ENV: ${env:NODE_ENV}
     PORT: ${env:PORT}
