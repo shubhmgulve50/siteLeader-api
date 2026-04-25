@@ -38,29 +38,13 @@ jobs:
             echo "STAGE=prod" >> $GITHUB_ENV
             echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID_PROD }}" >> $GITHUB_ENV
             echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY_PROD }}" >> $GITHUB_ENV
-            echo "AWS_BUCKET_NAME=${{ vars.AWS_BUCKET_NAME_PROD }}" >> $GITHUB_ENV
-            echo "AWS_BUCKET_URL=${{ vars.AWS_BUCKET_URL_PROD }}" >> $GITHUB_ENV
-            echo "AWS_CLOUDFRONT_URL=${{ vars.AWS_CLOUDFRONT_URL_PROD }}" >> $GITHUB_ENV
             echo "MONGODB_URI=${{ vars.MONGODB_URI_PROD }}" >> $GITHUB_ENV
-            echo "SMTP_HOST=${{ vars.SMTP_HOST_PROD }}" >> $GITHUB_ENV
-            echo "SMTP_PORT=${{ vars.SMTP_PORT_PROD }}" >> $GITHUB_ENV
-            echo "SMTP_USER=${{ vars.SMTP_USER_PROD }}" >> $GITHUB_ENV
-            echo "SMTP_PASSWORD=${{ vars.SMTP_PASSWORD_PROD }}" >> $GITHUB_ENV
-            echo "FRONTEND_URL=${{ vars.FRONTEND_URL_PROD }}" >> $GITHUB_ENV
             echo "COOKIE_DOMAIN=${{ vars.COOKIE_DOMAIN_PROD }}" >> $GITHUB_ENV
           else
             echo "STAGE=dev" >> $GITHUB_ENV
             echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}" >> $GITHUB_ENV
             echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> $GITHUB_ENV
-            echo "AWS_BUCKET_NAME=${{ vars.AWS_BUCKET_NAME }}" >> $GITHUB_ENV
-            echo "AWS_BUCKET_URL=${{ vars.AWS_BUCKET_URL }}" >> $GITHUB_ENV
-            echo "AWS_CLOUDFRONT_URL=${{ vars.AWS_CLOUDFRONT_URL }}" >> $GITHUB_ENV
             echo "MONGODB_URI=${{ vars.MONGODB_URI }}" >> $GITHUB_ENV
-            echo "SMTP_HOST=${{ vars.SMTP_HOST }}" >> $GITHUB_ENV
-            echo "SMTP_PORT=${{ vars.SMTP_PORT }}" >> $GITHUB_ENV
-            echo "SMTP_USER=${{ vars.SMTP_USER }}" >> $GITHUB_ENV
-            echo "SMTP_PASSWORD=${{ vars.SMTP_PASSWORD }}" >> $GITHUB_ENV
-            echo "FRONTEND_URL=${{ vars.FRONTEND_URL }}" >> $GITHUB_ENV
             echo "COOKIE_DOMAIN=${{ vars.COOKIE_DOMAIN }}" >> $GITHUB_ENV
           fi
           echo "AWS_REGION=${{ vars.AWS_REGION }}" >> $GITHUB_ENV
@@ -74,8 +58,6 @@ jobs:
           echo "JWT_EXPIRES=${{ vars.JWT_EXPIRES }}" >> $GITHUB_ENV
           echo "COOKIE_EXPIRES=${{ vars.COOKIE_EXPIRES }}" >> $GITHUB_ENV
           echo "CORS_ORIGINS=${{ vars.CORS_ORIGINS }}" >> $GITHUB_ENV
-          echo "LOGO_URL=${{ vars.LOGO_URL }}" >> $GITHUB_ENV
-          echo "HOSPITAL_NAME=${{ vars.HOSPITAL_NAME }}" >> $GITHUB_ENV
           echo "SERVERLESS_ACCESS_KEY=${{ vars.SERVERLESS_ACCESS_KEY }}" >> $GITHUB_ENV
 
       - name: Configure AWS credentials
