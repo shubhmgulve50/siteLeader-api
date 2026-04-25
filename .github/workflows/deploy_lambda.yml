@@ -1,0 +1,60 @@
+name: Deploy to AWS Lambda
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    # Run only if it's a push to main or dev
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+
+      - name: Install Dependencies without dev
+        run: npm install --omit=dev
+
+      - name: Zip the deployment package
+        run: |
+          zip -r function.zip . -x '*.git*' '*.github*' 'node_modules/.bin/*'
+
+      - name: Set environment variables
+        id: vars
+        run: |
+          if [[ "${GITHUB_REF}" == "refs/heads/main" ]]; then
+            echo "env=prod" >> $GITHUB_OUTPUT
+            echo "region=${{ secrets.AWS_REGION }}" >> $GITHUB_OUTPUT
+            echo "lambda=${{ secrets.AWS_LAMBDA_FUNCTION_NAME_PROD }}" >> $GITHUB_OUTPUT
+            echo "access_key=${{ secrets.AWS_ACCESS_KEY_ID_PROD }}" >> $GITHUB_OUTPUT
+            echo "secret_key=${{ secrets.AWS_SECRET_ACCESS_KEY_PROD }}" >> $GITHUB_OUTPUT
+          else
+            echo "env=dev" >> $GITHUB_OUTPUT
+            echo "region=${{ secrets.AWS_REGION }}" >> $GITHUB_OUTPUT
+            echo "lambda=${{ secrets.AWS_LAMBDA_FUNCTION_NAME }}" >> $GITHUB_OUTPUT
+            echo "access_key=${{ secrets.AWS_ACCESS_KEY_ID }}" >> $GITHUB_OUTPUT
+            echo "secret_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ steps.vars.outputs.access_key }}
+          aws-secret-access-key: ${{ steps.vars.outputs.secret_key }}
+          aws-region: ${{ steps.vars.outputs.region }}
+
+      - name: Deploy to AWS Lambda
+        run: |
+          aws lambda update-function-code \
+            --function-name ${{ steps.vars.outputs.lambda }} \
+            --zip-file fileb://function.zip
