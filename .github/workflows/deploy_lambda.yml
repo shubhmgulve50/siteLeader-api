@@ -1,17 +1,17 @@
-name: Deploy to AWS Lambda
+name: Deploy to AWS Lambda (Serverless Framework)
 
 on:
   push:
     branches:
-      - main
       - dev
+      - main
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     # Run only if it's a push to main or dev
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'
+    if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/main'
 
     steps:
       - name: Checkout Code
@@ -20,41 +20,52 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 'lts/*'
+          node-version: 24
 
       - name: Install Dependencies without dev
         run: npm install --omit=dev
 
-      - name: Zip the deployment package
-        run: |
-          zip -r function.zip . -x '*.git*' '*.github*' 'node_modules/.bin/*'
+      - name: Install Serverless Framework
+        run: npm install -g serverless
+
+      - name: Install Serverless Warmup Plugin
+        run: npm install --save-dev serverless-plugin-warmup
 
       - name: Set environment variables
         id: vars
         run: |
           if [[ "${GITHUB_REF}" == "refs/heads/main" ]]; then
-            echo "env=prod" >> $GITHUB_OUTPUT
-            echo "region=${{ secrets.AWS_REGION }}" >> $GITHUB_OUTPUT
-            echo "lambda=${{ secrets.AWS_LAMBDA_FUNCTION_NAME_PROD }}" >> $GITHUB_OUTPUT
-            echo "access_key=${{ secrets.AWS_ACCESS_KEY_ID_PROD }}" >> $GITHUB_OUTPUT
-            echo "secret_key=${{ secrets.AWS_SECRET_ACCESS_KEY_PROD }}" >> $GITHUB_OUTPUT
+            echo "STAGE=prod" >> $GITHUB_ENV
+            echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID_PROD }}" >> $GITHUB_ENV
+            echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY_PROD }}" >> $GITHUB_ENV
+            echo "MONGODB_URI=${{ vars.MONGODB_URI_PROD }}" >> $GITHUB_ENV
+            echo "COOKIE_DOMAIN=${{ vars.COOKIE_DOMAIN_PROD }}" >> $GITHUB_ENV
           else
-            echo "env=dev" >> $GITHUB_OUTPUT
-            echo "region=${{ secrets.AWS_REGION }}" >> $GITHUB_OUTPUT
-            echo "lambda=${{ secrets.AWS_LAMBDA_FUNCTION_NAME }}" >> $GITHUB_OUTPUT
-            echo "access_key=${{ secrets.AWS_ACCESS_KEY_ID }}" >> $GITHUB_OUTPUT
-            echo "secret_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> $GITHUB_OUTPUT
+            echo "STAGE=dev" >> $GITHUB_ENV
+            echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}" >> $GITHUB_ENV
+            echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> $GITHUB_ENV
+            echo "MONGODB_URI=${{ vars.MONGODB_URI }}" >> $GITHUB_ENV
+            echo "COOKIE_DOMAIN=${{ vars.COOKIE_DOMAIN }}" >> $GITHUB_ENV
           fi
+          echo "AWS_REGION=${{ vars.AWS_REGION }}" >> $GITHUB_ENV
+
+          # Application Environment Variables
+
+          echo "PORT=${{ vars.PORT }}" >> $GITHUB_ENV
+          echo "NODE_ENV=${{ vars.NODE_ENV }}" >> $GITHUB_ENV
+          echo "JWT_SECRET=${{ vars.JWT_SECRET }}" >> $GITHUB_ENV
+          echo "JWT_REFRESH_SECRET=${{ vars.JWT_REFRESH_SECRET }}" >> $GITHUB_ENV
+          echo "JWT_EXPIRES=${{ vars.JWT_EXPIRES }}" >> $GITHUB_ENV
+          echo "COOKIE_EXPIRES=${{ vars.COOKIE_EXPIRES }}" >> $GITHUB_ENV
+          echo "CORS_ORIGINS=${{ vars.CORS_ORIGINS }}" >> $GITHUB_ENV
+          echo "SERVERLESS_ACCESS_KEY=${{ vars.SERVERLESS_ACCESS_KEY }}" >> $GITHUB_ENV
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id: ${{ steps.vars.outputs.access_key }}
-          aws-secret-access-key: ${{ steps.vars.outputs.secret_key }}
-          aws-region: ${{ steps.vars.outputs.region }}
+          aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
 
-      - name: Deploy to AWS Lambda
-        run: |
-          aws lambda update-function-code \
-            --function-name ${{ steps.vars.outputs.lambda }} \
-            --zip-file fileb://function.zip
+      - name: Deploy with Serverless
+        run: sls deploy --stage ${{ env.STAGE }}
