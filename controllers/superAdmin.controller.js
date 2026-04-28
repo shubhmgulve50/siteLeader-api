@@ -8,7 +8,13 @@ export const getBuilders = async (req, res) => {
     const { verificationStatus, page = 1, limit = 20, search } = req.query;
 
     const filter = { role: ROLE.BUILDER };
-    if (verificationStatus) filter.verificationStatus = verificationStatus;
+    if (verificationStatus) {
+      if (verificationStatus === VERIFICATION_STATUS.PENDING) {
+        filter.verificationStatus = { $in: [VERIFICATION_STATUS.PENDING, null] };
+      } else {
+        filter.verificationStatus = verificationStatus;
+      }
+    }
     if (search) filter.name = { $regex: search, $options: 'i' };
 
     const skip = (Number(page) - 1) * Number(limit);

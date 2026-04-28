@@ -63,7 +63,11 @@ export const getSiteStats = async (req, res) => {
 export const assignLabourToSite = async (req, res) => {
   try {
     const { siteId, labourId } = req.body;
-    const builderId = req.user.role === ROLE.BUILDER ? req.user._id : req.body.builderId;
+    const builderId = req.user.role === ROLE.BUILDER
+      ? req.user._id
+      : req.user.role === ROLE.SUPER_ADMIN
+        ? req.body.builderId
+        : req.user.builderId;
 
     if (!siteId || !labourId) {
       return res.status(400).json({ message: 'Site ID and Labour ID are required' });
@@ -100,7 +104,11 @@ export const getSiteLabour = async (req, res) => {
 export const markAttendance = async (req, res) => {
   try {
     const { siteId, attendanceData } = req.body; // attendanceData: [{ labourId, status, notes, date }]
-    const builderId = req.user.role === ROLE.BUILDER ? req.user._id : req.body.builderId;
+    const builderId = req.user.role === ROLE.BUILDER
+      ? req.user._id
+      : req.user.role === ROLE.SUPER_ADMIN
+        ? req.body.builderId
+        : req.user.builderId;
     const markedBy = req.user._id;
 
     if (!siteId || !attendanceData || !Array.isArray(attendanceData)) {
@@ -285,7 +293,11 @@ export const getLabourAttendanceCalendar = async (req, res) => {
 export const createDailyLog = async (req, res) => {
   try {
     const { siteId, workDone, issues, date } = req.body;
-    const builderId = req.user.role === ROLE.BUILDER ? req.user._id : req.body.builderId;
+    const builderId = req.user.role === ROLE.BUILDER
+      ? req.user._id
+      : req.user.role === ROLE.SUPER_ADMIN
+        ? req.body.builderId
+        : req.user.builderId;
     const createdBy = req.user._id;
 
     if (!siteId || !workDone) {
