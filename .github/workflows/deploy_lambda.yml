@@ -3,15 +3,12 @@ name: Deploy to AWS Lambda (Serverless Framework)
 on:
   push:
     branches:
-      - dev
       - main
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
-    # Run only if it's a push to main or dev
-    if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/main'
 
     steps:
       - name: Checkout Code
